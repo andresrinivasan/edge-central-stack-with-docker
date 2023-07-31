@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+  portai  ner:
+    image: portainer/portainer-ce:2.18.4-alpine
+    container_name: portainer
+    command: -H unix:///var/run/docker.sock
+    networks:
+      edgex-network:
+        aliases:
+          - edgex-portainer
+    ports:
+      - "9000:9000"
+      - "8000:8000"
+    restart: always
+    volumes:
+      # use host timezone
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer-data:/data
+    logging: *default-logging

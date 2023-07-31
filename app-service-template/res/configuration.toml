@@ -1,0 +1,186 @@
+# TODO: Go here for detailed information on Application Service configuration:
+#       https://docs.edgexfoundry.org/latest/microservices/application/GeneralAppServiceConfig/
+[Writable]
+LogLevel = "INFO"
+
+  [Writable.StoreAndForward]
+  Enabled = false
+  RetryInterval = "5m"
+  MaxRetryCount = 10
+
+  [Writable.InsecureSecrets]
+    [Writable.InsecureSecrets.DB]
+    path = "redisdb"
+      [Writable.InsecureSecrets.DB.Secrets]
+      username = ""
+      password = ""
+    # TODO: Remove if not using HTTPS Webserver
+    [Writable.InsecureSecrets.HTTPS]
+    path = "https"
+      [Writable.InsecureSecrets.HTTPS.Secrets]
+      cert = ""
+      key = ""
+
+  [Writable.Telemetry]
+  Interval = "30s"
+  PublishTopicPrefix  = "edgex/telemetry" # /<service-name>/<metric-name> will be added to this Publish Topic prefix
+    [Writable.Telemetry.Metrics] # All service's metric names must be present in this list.
+    # TODO: Remove sample custom metric and implement meaningful custom metrics if any needed.
+    # Custom App Service Metrics
+    EventsConvertedToXML = true
+    # App SDK provided Metrics
+    MessagesReceived = true
+    InvalidMessagesReceived = true
+    PipelineMessagesProcessed = true # Pipeline IDs are added as the tag for the metric for each pipeline defined
+    PipelineMessageProcessingTime = true # Pipeline IDs are added as the tag for the metric for each pipeline defined
+    PipelineProcessingErrors = true # Pipeline IDs are added as the tag for the metric for each pipeline defined
+    HttpExportSize = true # Single metric used for all HTTP Exports
+    MqttExportSize = true # BrokerAddress and Topic are added as the tag for this metric for each MqttExport defined
+    # Common Security Service Metrics
+    SecuritySecretsRequested = true
+    SecuritySecretsStored = true
+    SecurityConsulTokensRequested = true
+    SecurityConsulTokenDuration = true
+    [Writable.Telemetry.Tags] # Contains the service level tags to be attached to all the service's metrics
+#    Gateway="my-iot-gateway" # Tag must be added here or via Consul Env Override can only change existing value, not added new ones.
+
+[Service]
+HealthCheckInterval = "10s"
+Host = "localhost"
+# TODO: set this port appropriately,
+#       App service use port assignments 597xx with lower range 00-39 reserved for
+#       app-service-configurable profiles/instances, Rules Engine and examples
+Port = 59740
+ServerBindAddr = "" # Leave blank so default to Host value unless different value is needed.
+StartupMsg = "simple-app-service Application Service has started"
+MaxResultCount = 0 # Not currently used by App Services.
+MaxRequestSize = 0 # Not currently used by App Services.
+RequestTimeout = "5s"
+
+# TODO: Remove section if not using HTTPS Webserver. Default protocol is HTTP if section is empty
+[HttpServer]
+Protocol = "http"
+SecretName = "https"
+HTTPSCertName = "cert"
+HTTPSKeyName = "key"
+
+[Registry]
+Host = "localhost"
+Port = 8500
+Type = "consul"
+
+[Database]
+Type = "redisdb"
+Host = "localhost"
+Port = 6379
+Timeout = "30s"
+
+# TODO: Determine if your service will use secrets in secure mode, i.e. Vault.
+#       if not this section can be removed, but you must make sure EDGEX_SECURITY_SECRET_STORE is set to false
+#       Note is database is running in secure more and you have Store and Forward enable you will need to run this
+#       service in secure mode.
+#       For more details about SecretStore: https://docs.edgexfoundry.org/latest/microservices/security/Ch-SecretStore/
+[SecretStore]
+Type = "vault"
+Host = "localhost"
+Port = 8200
+Path = "simple-app-service/"
+Protocol = "http"
+RootCaCertPath = ""
+ServerName = ""
+TokenFile = "/tmp/edgex/secrets/simple-app-service/secrets-token.json"
+  [SecretStore.Authentication]
+  AuthType = "X-Vault-Token"
+  [SecretStore.RuntimeTokenProvider]
+  Enabled = false
+  Protocol = "https"
+  Host = "localhost"
+  Port = 59841
+  TrustDomain = "edgexfoundry.org"
+  EndpointSocket = "/tmp/edgex/secrets/spiffe/public/api.sock"
+  RequiredSecrets = "redisdb"
+
+[Clients]
+  [Clients.core-data]
+  Protocol = "http"
+  Host = "localhost"
+  Port = 59880
+
+  [Clients.core-metadata]
+  Protocol = "http"
+  Host = "localhost"
+  Port = 59881
+
+  [Clients.core-command]
+  Protocol = "http"
+  Host = "localhost"
+  Port = 59882
+
+[Clients.support-notifications]
+  Protocol = "http"
+  Host = "localhost"
+  Port = 59860
+
+[Trigger]
+Type="edgex-messagebus"
+  [Trigger.EdgexMessageBus]
+  Type = "redis"
+    [Trigger.EdgexMessageBus.SubscribeHost]
+    Host = "localhost"
+    Port = 6379
+    Protocol = "redis"
+    SubscribeTopics="edgex/events/#"
+    [Trigger.EdgexMessageBus.PublishHost]   # TODO: Remove if service is NOT publishing back to the message bus
+    Host = "localhost"
+    Port = 6379
+    Protocol = "redis"
+    PublishTopic="event-xml"
+    [Trigger.EdgexMessageBus.Optional]
+    authmode = "usernamepassword"  # required for redis messagebus (secure or insecure).
+    secretname = "redisdb"
+
+# TODO: If using mqtt messagebus, Uncomment this section and remove above [Trigger] section,
+#       Otherwise remove this commented out block
+#[Trigger]
+#Type="edgex-messagebus"
+#  [Trigger.EdgexMessageBus]
+#  Type = "mqtt"
+#    [Trigger.EdgexMessageBus.SubscribeHost]
+#    Host = "localhost"
+#    Port = 1883
+#    Protocol = "tcp"
+#    SubscribeTopics="events, edgex/events/#"
+#    [Trigger.EdgexMessageBus.PublishHost]   # TODO: Remove if service is NOT publishing back to the message bus
+#    Host = "localhost"
+#    Port = 1883
+#    Protocol = "tcp"
+#    PublishTopic="event-xml"
+#    [Trigger.EdgexMessageBus.Optional]
+#    ClientId ="simple-app-service"
+#    Qos            = "0" # Quality of Service values are 0 (At most once), 1 (At least once) or 2 (Exactly once)
+#    KeepAlive      = "10" # Seconds (must be 2 or greater)
+#    Retained       = "false"
+#    AutoReconnect  = "true"
+#    ConnectTimeout = "30" # Seconds
+#    SkipCertVerify = "false"
+#    authmode = "none"  # change to "usernamepassword", "clientcert", or "cacert" for secure MQTT messagebus.
+#    secretname = "mqtt-bus"
+
+# TODO: Add custom settings needed by your app service or remove if you don't have any settings.
+# This can be any Key/Value pair you need.
+# For more details see: https://docs.edgexfoundry.org/latest/microservices/application/GeneralAppServiceConfig/#application-settings
+# Example that works with devices from the Virtual Device service:
+[ApplicationSettings]
+DeviceNames = "Random-Boolean-Device, Random-Integer-Device, Random-UnsignedInteger-Device, Random-Float-Device, Random-Binary-Device, sample-numeric"
+
+# TODO: Replace this section with your actual structured custom configuration section
+#       or remove if you don't have a need for structured custom configuration
+# This can be any structure you need, but it can not contain slices. Use a maps instead of slices.
+# For more details see: https://docs.edgexfoundry.org/latest/microservices/application/GeneralAppServiceConfig/#custom-configuration
+[AppCustom]
+ResourceNames = "Boolean, Int32, Uint32, Float32, Binary"
+SomeValue = 123
+  [AppCustom.SomeService]
+  Host = "localhost"
+  Port = 9080
+  Protocol = "http"

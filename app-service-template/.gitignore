@@ -1,0 +1,9 @@
+test.txt
+debug
+*.exe
+simple-app-service
+.vscode
+coverage.out
+logs/
+.idea
+VERSION

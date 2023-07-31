@@ -1,0 +1,5 @@
+services:
+  alpine:
+    image: alpine:latest
+    container_name: alpine
+    command: tail -F /dev/null
