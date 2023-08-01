@@ -1,0 +1,12 @@
+test.txt
+debug
+*.exe
+simple-app-service
+.vscode
+go.sum
+coverage.out
+logs/
+.idea
+VERSION
+app-functions-sdk-go-private
+
