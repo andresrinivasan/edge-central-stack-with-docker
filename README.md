@@ -4,3 +4,4 @@
 - App service network assumes edgexpert_edgex-network but network is created based on PROJECT?
 - Preset Portainer admin password
 - Alpine down rather than kill
+- Cleanup WARN[0000] mount of type `volume` should not define `bind` option

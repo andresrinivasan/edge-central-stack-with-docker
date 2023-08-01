@@ -1,0 +1,10 @@
+test.txt
+debug
+*.exe
+app-new-service
+.vscode
+go.sum
+coverage.out
+logs/
+.idea
+VERSION
