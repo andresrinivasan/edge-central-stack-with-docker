@@ -1,0 +1,368 @@
+openapi: 3.0.0
+info:
+  title: Edge Xpert - Application Services API
+  description: This is the definition of the API for Application Functions services in the Edge Xpert IOT microservice platform. Application Services provides the means for processing/transforming/exporting data out of EdgeX. 
+  version: 2.2.0
+
+servers:
+  - url: http://localhost:/api/v2
+    description: URL for local development and testing
+
+components:
+  schemas:
+    BaseRequest:
+      description: "Defines basic properties which all use-case specific request DTO instances should support."
+      type: object
+      properties:
+        requestId:
+          description: "Uniquely identifies this request. Only used for async protocols that need match the response to the request."
+          type: string
+          format: uuid
+          example: "e6e8a2f4-eb14-4649-9e2b-175247911369"
+        apiVersion:
+          description: "A version number shows the API version in DTOs."
+          type: string
+          example: "v2"
+    BaseResponse:
+      description: "Defines basic properties which all use-case specific response DTO instances should support"
+      type: object
+      properties:
+        apiVersion:
+          description: "A version number shows the API version in DTOs."
+          type: string
+        requestId:
+          description: "Uniquely identifies the request that resulted in this response."
+          type: string
+          format: uuid
+          example: "e6e8a2f4-eb14-4649-9e2b-175247911369"
+        statusCode:
+          description: "A numeric code signifying the operational status of the response."
+          type: integer
+        message:
+          description: "A field that can contain a free-form message, such as an error message."
+          type: string
+    ErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+      description: "A response type for returning a generic error to the caller."
+      type: object
+    ConfigResponse:
+      description: "Provides a response containing the configuration for the targeted service."
+      type: object
+      properties:
+        apiVersion:
+          description: "A version number shows the API version in DTOs."
+          type: string
+        config:
+          description: "An object containing the service's configuration. Please refer to Core Data's configuration documentation for more details at [EdgeX Foundry Documentation](https://docs.edgexfoundry.org)."
+          type: object
+        serviceName:
+          description: "Outputs the name of the service the response is from"
+          type: string
+    MetricsResponse:
+      description: "A response from the /metrics endpoint providing memory and cpu utilization stats."
+      type: object
+      properties:
+        apiVersion:
+          description: "A version number shows the API version in DTOs."
+          type: string
+        serviceName:
+          description: "Outputs the name of the service the response is from"
+          type: string
+        metrics:
+          type: object
+          properties:
+            memAlloc:
+              description: "Alloc is bytes of allocated heap objects which is a uint64 type integer."
+              type: integer
+            memFrees:
+              description: "Frees is the cumulative count of heap objects freed which is a uint64 type integer."
+              type: integer
+            memLiveObjects:
+              description: "The uint64 type integer of live objects is Mallocs - Frees."
+              type: integer
+            memMallocs:
+              description: "The cumulative count of heap objects allocated which is a uint64 type integer."
+              type: integer
+            memSys:
+              description: "The total bytes of memory obtained from the OS which is a uint64 type integer."
+              type: integer
+            memTotalAlloc:
+             description: "Cumulative bytes allocated for heap objects which is a uint64 type integer."
+             type: integer
+            cpuBusyAvg:
+              description: "A uint8 type integer indicates the average level of CPU utilization"
+              type: number
+    PingResponse:
+      description: "A response from the /ping endpoint indicating that the service is functioning."
+      type: object
+      properties:
+        apiVersion:
+          description: "A version number shows the API version in DTOs."
+          type: string
+        timestamp:
+          description: "Outputs the current server timestamp in Unix Time format"
+          type: string
+        serviceName:
+          description: "Outputs the name of the service the response is from"
+          type: string
+    SecretRequest:
+      allOf:
+        - $ref: '#/components/schemas/BaseRequest'
+      description: Defines the secret data to be stored
+      type: object
+      properties:
+        path:
+          description: Specifies the type or location of the secret to store
+          type: string
+          example: "credentials"
+        secretData:
+          description: A list of the key/value pairs of secret data to store
+          type: array
+          items:
+            $ref: '#/components/schemas/SecretDataKeyValue'
+      required:
+        - path
+        - secrets
+    SecretDataKeyValue:
+      description: Defines a key/value pair of secret data
+      type: object
+      properties:
+        key: 
+          description: The key to identify the secret data
+          type: string
+          example: "username"
+        value:
+          description: The value of the secret data
+          type: string
+          example: "mqtt-user"
+      required:
+        - key
+        - value
+    VersionResponse:
+      description: "A response returned from the /version endpoint whose purpose is to report out the latest version supported by the service."
+      type: object
+      properties:
+        apiVersion:
+          description: "A version number shows the API version in DTOs."
+          type: string
+        version:
+          description: "The latest version supported by the service."
+          type: string
+        serviceName:
+          description: "Outputs the name of the service the response is from"
+          type: string
+    VersionSdkResponse:
+      description: "A response returned from the /version endpoint whose purpose is to report out the latest version supported by the service, as well as the latest SDK version supported."
+      allOf:
+        - $ref: '#/components/schemas/VersionResponse'
+      type: object
+      properties:
+        sdk_version:
+          description: "The version of the SDK with which the service was built."
+          type: string
+
+  parameters:
+    correlatedRequestHeader:
+      in: header
+      name: X-Correlation-ID
+      description: "A unique identifier correlating a request to its associated response, facilitating tracing through being included on requests originating from the initiating request."
+      schema:
+        type: string
+        format: uuid
+      required: true
+      example: "14a42ea6-c394-41c3-8bcd-a29b9f5e6835"
+
+  headers:
+    correlatedResponseHeader:
+      description: "A response header that returns the unique correlation ID used to initiate the request."
+      schema:
+        type: string
+        format: uuid
+      required: true
+      example: "14a42ea6-c394-41c3-8bcd-a29b9f5e6835"
+
+
+paths:
+  /config:
+    get:
+      summary: "Returns the current configuration of the service."
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigResponse'
+        '500':
+          description: "Interval Server Error"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /metrics:
+    get:
+      summary: "An endpoint that can be used to obtain CPU/Memory usage stats for a given service."
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+        '500':
+          description: "Interval Server Error"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /ping:
+    get:
+      summary: "A simple 'ping' endpoint that can be used as a service healthcheck"
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PingResponse'
+        '500':
+          description: "Interval Server Error"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /secret:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
+    post:
+      summary: Stores a secret to the service's Secret Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/SecretRequest'
+        required: true
+      responses:
+        '201':
+          description: "Created"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+        '400':
+          description: "Invalid request."
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: "An unexpected error happened on the server."
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /trigger:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
+    post:
+      summary: Trigger function pipeline from HTTP request.
+      description: Available when 'http' is specified as the Trigger type in configuration. Provides a way to initiate and start processing the defined pipeline using the data submitted.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object type must match the Application Service's Target Type. Currently Target Type defaults to EdgeX model.Events from go-mod-core-contracts. This will change to default to a V2 dtos.Event in the future.
+        required: true
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Optional reponse is the output data from the Application Service's function pipeline, if set.
+        '400':
+          description: "Bad Request"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/text:
+              schema:
+                type: string
+                description: message describing the error encountered
+        '422':
+          description: "Unprocessable Entity"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/text:
+              schema:
+                type: string
+                description: message describing the error encountered
+        '500':
+          description: "Interval Server Error"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/text:
+              schema:
+                type: string
+                description: message describing the error encountered
+  /version:
+    get:
+      summary: "A simple 'version' endpoint that will return the current version of the service, as well as the SDK version"
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionSdkResponse'
+        '500':
+          description: "Interval Server Error"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
