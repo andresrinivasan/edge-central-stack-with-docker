@@ -1,4 +1,4 @@
-# simple-edge-central-stack
+# Simple Edge Central Stack
 
 The purpose of this repo is to demonstrate how to manage an Edge Central stack without using the Edge Central CLI. This demonstration is just that; you may or may not want this particular set of services in your own environment.
 
