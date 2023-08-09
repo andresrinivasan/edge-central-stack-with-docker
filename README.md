@@ -29,7 +29,7 @@ There are additional services that may be needed, for example Portainer. In the 
 
 ### Creating Portainer Stacks
 
-A Portainer Stack is "...a collection of services, usually related to one application or usage.". Among other ways to define a Portainer Stack is to use a Docker Compose project. In the _Makefile_ the project is inferred from the Docker Compose File for Edge Central (i.e. edgexpert) and declared by setting a project for Alpine.
+A Portainer Stack is ["...a collection of services, usually related to one application or usage"](https://docs.portainer.io/user/docker/stacks). Among other ways to define a Portainer Stack is to use a Docker Compose project. In the _Makefile_ the project is inferred from the Docker Compose File for Edge Central (i.e. edgexpert) and declared by setting a project for Alpine.
 
 ## v.Next
 
