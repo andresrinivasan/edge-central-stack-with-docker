@@ -1,1 +1,5 @@
 .DS_Store
+javascript-http-export.toml
+http-trigger.json
+custom-app-service.yaml
+app-service-override.yaml
