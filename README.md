@@ -52,13 +52,13 @@ COMPOSE_FILE=~/iotech-edge-central/2.3.2/etc/edgexpert/docker-compose.yml:~/iote
 
 ### Starting an App Service
 
-This is a little more complex as a custom version of the Edge Central `app-service.yaml` is required along with a couple of support files.
+This is a little more complex overrides of the Edge Central `app-service.yml` are needed along with a couple of support files.
 
 #### Override `app-service.yml`
 
-The app-service.yml that comes with Edge Central requires a couple of overrides. See [the Edge Central HTTP Export Example repo](https://github.com/andresrinivasan/edge-central-http-export-example) for the source and additional story telling. First and most important is to use a Docker Volume rather than a [bind mount](https://docs.docker.com/storage/bind-mounts/) for the app service configuration file.
+The app-service.yml that comes with Edge Central requires a couple of overrides. See [the Edge Central HTTP Export Example repo](https://github.com/andresrinivasan/edge-central-http-export-example) for the source and additional story telling. First I felt that a Docker Volume was more Docker'ish rather than a [bind mount](https://docs.docker.com/storage/bind-mounts/) for the app service configuration file.
 
-App services expect to find their configuration in res/APP-SERVICE-NAME/configuration.toml where APP-SERVICE-NAME is...wait for it...the name of the app service. The modified Docker Compose file (`custom-app-service.yaml`) now includes an external volume dependency on `edgecentral-app-service-config` which is mounted as `/res`. When the app service is started via `make`, the app service configuration file is copied to `edgecentral-app-service-config:/res/javascript-http-export/configuration.toml`.
+App services expect to find their configuration in res/APP-SERVICE-NAME/configuration.toml where APP-SERVICE-NAME is...wait for it...the name of the app service. The override Docker Compose file (`app-service-override.yaml`) includes an external volume dependency on `edgecentral-app-service-config` which is mounted as `/res`. This overrides the bind mount in `app-service.yml` which mounts `~/.edgexpert/...` as `/res`. When the app service is started via `make`, the app service configuration file is copied to `edgecentral-app-service-config:/res/javascript-http-export/configuration.toml`.
 
 A ports key has also been added to the service to make it easier to trigger the app service directly from the host.
 
