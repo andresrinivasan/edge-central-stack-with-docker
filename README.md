@@ -21,7 +21,8 @@ The Edge Central CLI is a wrapper around Docker and Docker Compose and exists to
 | edgexpert up | docker compose up ... | start-edge-central |
 | edgexpert down | docker compose down ... | stop-edge-central |
 | edgexpert gen | docker compose config ... | render-canonical-docker-compose |
-| edgexpert up app-service --path=... | docker compose -f app-service.yaml... | start-app-service |
+| edgexpert up app-service --path=... | docker compose -f app-service.yaml... up | start-app-service |
+| edgexpert down app-service --path=... | docker compose -f app-service.yaml... down | stop-app-service |
 
 ## Additional Information
 
@@ -31,25 +32,43 @@ Between passing arguments to Docker Compose knowing the minimum microservices ne
 
 You must have a valid license key to start Edge Central. All IOTech microservices look for the license key in a Docker volume named _license-data_ with the path _/lic/LICENSE_FILE.lic_. An evaluation license can be requested via <https://www.iotechsys.com/resources/evaluating-the-software/edge-central-evaluation/>.
 
+#### Example
+
+```sh
+LICENSE_FILE=~/iotech-edge-central/2.3.2/EdgeXpert_Andre_Evaluation.lic make add-license
+```
+
 ### Starting Edge Central
 
 There is a common set of microservices that are more or less needed for Edge Central (see `EDGE_CENTRAL_COMMON_SERVICES` in the _Makefile_). For example, if events are not being stored in Redis, there is no need to start Redis. Those common services are added to the underlying Docker Compose command when using _edgexpert_.
 
 There are additional services that may be needed, for example Portainer. In the _Makefile_ these are added to `EDGE_CENTRAL_ADDITIONAL_SERVICES`. Please see the [IOTech Services](https://docs.iotechsys.com/edge-xpert23/cli/cli-services.html) documentation for an enumeration of the services included with Edge Central.
 
+#### Example
+
+```sh
+COMPOSE_FILE=~/iotech-edge-central/2.3.2/etc/edgexpert/docker-compose.yml:~/iotech-edge-central/2.3.2/etc/edgexpert/app-service.yml make start-edge-central
+```
+
 ### Starting an App Service
 
 This is a little more complex as a custom version of the Edge Central `app-service.yaml` is required along with a couple of support files.
 
-#### Custom Version of `app-service.yml`
+#### Override `app-service.yml`
 
-The app-service.yml that comes with Edge Central requires a couple of modifications. See [the Edge Central HTTP Export Example repo](https://github.com/andresrinivasan/edge-central-http-export-example) for the source and additional story telling. First and most important is to use a Docker Volume rather than a [bind mount](https://docs.docker.com/storage/bind-mounts/) for the app service configuration file. 
+The app-service.yml that comes with Edge Central requires a couple of overrides. See [the Edge Central HTTP Export Example repo](https://github.com/andresrinivasan/edge-central-http-export-example) for the source and additional story telling. First and most important is to use a Docker Volume rather than a [bind mount](https://docs.docker.com/storage/bind-mounts/) for the app service configuration file.
 
 App services expect to find their configuration in res/APP-SERVICE-NAME/configuration.toml where APP-SERVICE-NAME is...wait for it...the name of the app service. The modified Docker Compose file (`custom-app-service.yaml`) now includes an external volume dependency on `edgecentral-app-service-config` which is mounted as `/res`. When the app service is started via `make`, the app service configuration file is copied to `edgecentral-app-service-config:/res/javascript-http-export/configuration.toml`.
 
 A ports key has also been added to the service to make it easier to trigger the app service directly from the host.
 
 See the [the Edge Central HTTP Export Example repo](https://github.com/andresrinivasan/edge-central-http-export-example) for more details about the sample app service specifically.
+
+#### Example
+
+```sh
+COMPOSE_FILE=~/iotech-edge-central/2.3.2/etc/edgexpert/docker-compose.yml:~/iotech-edge-central/2.3.2/etc/edgexpert/app-service.yml make start-app-service
+```
 
 ### Creating Portainer Stacks
 
