@@ -47,7 +47,7 @@ There are additional services that may be needed, for example Portainer. In the 
 #### Example
 
 ```sh
-COMPOSE_FILE=~/iotech-edge-central/2.3.2/etc/edgexpert/docker-compose.yml:~/iotech-edge-central/2.3.2/etc/edgexpert/app-service.yml make start-edge-central
+COMPOSE_FILE=~/iotech-edge-central/2.3.2/etc/edgexpert/docker-compose.yml make start-edge-central
 ```
 
 ### Starting an App Service
