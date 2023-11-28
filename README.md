@@ -47,8 +47,10 @@ There are additional services that may be needed, for example Portainer. In the 
 #### Example
 
 ```sh
-COMPOSE_FILE=~/iotech-edge-central/2.3.2/etc/edgexpert/docker-compose.yml make start-edge-central
+COMPOSE_FILE=~/iotech-edge-central/2.3.2/etc/edgexpert/docker-compose.yml:~/iotech-edge-central/2.3.2/etc/edgexpert/docker-compose-port-mapping.yml make start-edge-central
 ```
+
+> Note the two Compose files are being merged with the `docker-compose-port-mapping.yml` file declaring the ports for the microservices.
 
 ### Starting an App Service
 
