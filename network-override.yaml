@@ -1,0 +1,9 @@
+networks:
+  default:
+    external: true
+    name: none
+  #
+  # Explcitly setting edgex-network.name to avoid the default of using the directory name as the project is not needed 
+  # as long as COMPOSE_PROJECT_NAME is set.
+  # edgex-network:
+  #   name: edgexpert_edgex-network

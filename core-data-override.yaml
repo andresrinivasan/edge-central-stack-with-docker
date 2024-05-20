@@ -1,0 +1,4 @@
+services:
+  core-data:
+    environment:
+      WRITABLE_PERSISTDATA: false
